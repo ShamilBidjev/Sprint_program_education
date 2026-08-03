@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Спринт Мобильный",
+    "slug": "sprint-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#2688EB"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.shamilbidjev.sprintmobile"
+    }
+  }
+}

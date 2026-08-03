@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Спринт Мобильное Приложение (iOS & Android Simulator)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX CSS & JS (Ultra-fast vertical LaTeX renderer) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- SQL.js SQLite Parser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            background-color: #F0F2F5;
+        }
+        /* Lock view inside standard mobile frame simulator */
+        .phone-frame {
+            width: 390px;
+            height: 844px;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            border: 12px solid #1C1E21;
+            overflow: hidden;
+            position: relative;
+            background-color: #F0F2F5;
+        }
+        .notch {
+            width: 140px;
+            height: 30px;
+            background-color: #1C1E21;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background-color: #E4E6EB;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen py-10">
+
+    <!-- Phone Simulator Container -->
+    <div class="phone-frame flex flex-col shadow-2xl relative">
+        <!-- Notch -->
+        <div class="notch flex justify-around items-center px-4 pt-1">
+            <span class="text-[10px] text-white font-bold">9:41</span>
+            <div class="w-12 h-3 bg-black rounded-full mx-2"></div>
+            <div class="flex space-x-1 items-center">
+                <i class="fa-solid fa-signal text-[9px] text-white"></i>
+                <i class="fa-solid fa-wifi text-[9px] text-white"></i>
+                <i class="fa-solid fa-battery-three-quarters text-[10px] text-white"></i>
+            </div>
+        </div>
+
+        <!-- Full-screen Loading Overlay with Spinner -->
+        <div id="loading-overlay" class="absolute inset-0 bg-white/95 z-50 flex flex-col justify-center items-center space-y-4 hidden">
+            <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div id="loading-status-text" class="text-sm font-bold text-gray-700 tracking-tight text-center px-6">Подключение к облаку...</div>
+        </div>
+
+        <!-- Dynamic Stack of Mobile screens -->
+        <div id="app-container" class="flex-1 flex flex-col pt-8 overflow-hidden relative">
+            
+            <!-- SCREEN 1: LOGIN & CONNECT (CLOUD PATHWAY) -->
+            <div id="screen-login" class="flex-1 flex flex-col p-5 justify-between bg-white overflow-y-auto custom-scroll">
+                <div class="flex-1 flex flex-col justify-center items-center space-y-4 my-2">
+                    <!-- Brand Icon -->
+                    <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
+                        <i class="fa-solid fa-cloud-bolt text-3xl text-white"></i>
+                    </div>
+                    <div class="text-center">
+                        <h1 class="text-2xl font-extrabold text-blue-600 tracking-tight">Спринт Мобильный</h1>
+                        <p class="text-xs text-gray-500 mt-0.5">Тренажер быстрых ответов в облаке</p>
+                    </div>
+
+                    <!-- Connection fields -->
+                    <div class="w-full space-y-2.5 pt-2">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Ваш Псевдоним:</label>
+                            <input type="text" id="input-student-name" placeholder="Например: Никита Козлов" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 font-semibold mt-1">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 uppercase">Укажите ваш пол:</label>
+                                <select id="select-student-gender" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500 font-semibold mt-1">
+                                    <option value="boys">Мальчик 👦</option>
+                                    <option value="girl">Девочка 👧</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-500 uppercase">Ваши классы:</label>
+                                <div class="bg-gray-50 border border-gray-200 rounded-xl p-2.5 max-h-[85px] overflow-y-auto custom-scroll mt-1 text-left space-y-1">
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="10-11 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>10-11 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="9 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>9 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="8 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>8 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="7 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>7 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="6 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>6 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="5 класс" class="class-checkbox rounded border-gray-300" checked>
+                                        <span>5 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="4 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>4 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="3 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>3 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="2 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>2 класс</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1.5 text-[10px] font-bold text-gray-600">
+                                        <input type="checkbox" value="1 класс" class="class-checkbox rounded border-gray-300">
+                                        <span>1 класс</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 uppercase">Ключ Преподавателя (Yandex Token):</label>
+                            <input type="password" id="input-teacher-key" placeholder="Вставьте токен Яндекс.Диска..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-blue-500 font-semibold mt-1">
+                            <span class="text-[9px] text-gray-400 block mt-0.5">Используйте секретный ключ учителя из десктопного окна бэкапов</span>
+                        </div>
+                        
+                        <div id="login-error" class="text-xs text-rose-500 font-bold text-center hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="space-y-2 pt-3">
+                    <button onclick="attemptConnection()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-100 transition flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-plug"></i>
+                        <span>Войти как Ученик</span>
+                    </button>
+                    <button onclick="switchToTeacherMode()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl transition text-[11px]">
+                        <i class="fa-solid fa-chalkboard-user mr-1"></i> Панель управления учителя (Teacher Mode)
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCREEN 2: STUDENT DASHBOARD -->
+            <div id="screen-dashboard" class="flex-1 flex flex-col bg-gray-50 hidden">
+                <!-- Header -->
+                <div class="bg-white px-5 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold text-lg" id="student-avatar-letter">У</div>
+                        <div>
+                            <h2 class="text-sm font-bold text-gray-800" id="student-welcome-name">Привет, Ученик!</h2>
+                            <span class="text-[11px] text-emerald-500 font-semibold flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1"></span> Облако активно</span>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-rose-500 transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4 custom-scroll">
+                    
+                    <!-- ACTIVE ASSIGNMENT BANNER -->
+                    <div id="active-assignment-banner" class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 text-white shadow-md relative overflow-hidden hidden">
+                        <div class="relative z-10">
+                            <span class="bg-white/20 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">Задание для вашего класса!</span>
+                            <h3 class="text-base font-extrabold mt-1.5" id="assignment-topic-title">Итоговый тест за 6 класс</h3>
+                            <p class="text-xs text-blue-100 mt-1" id="assignment-class-title">Раздел: 6 класс</p>
+                            <button onclick="startAssignedSprint()" class="mt-3 bg-white text-blue-600 font-bold text-xs px-4 py-2 rounded-xl shadow-md flex items-center space-x-1 hover:bg-blue-50 transition">
+                                <i class="fa-solid fa-play"></i>
+                                <span>Начать спринт</span>
+                            </button>
+                        </div>
+                        <i class="fa-solid fa-circle-exclamation text-8xl text-white/5 absolute -right-4 -bottom-4 rotate-12"></i>
+                    </div>
+
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Математические разделы:</h3>
+
+                    <!-- Classes List Grid -->
+                    <div id="classes-list-grid" class="grid grid-cols-2 gap-3">
+                        <!-- Dynamic Class buttons go here -->
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SCREEN 3: TOPICS SELECTOR -->
+            <div id="screen-topics" class="flex-1 flex flex-col bg-gray-50 hidden">
+                <!-- Header -->
+                <div class="bg-white px-4 py-3.5 border-b border-gray-200 flex items-center space-x-2">
+                    <button onclick="showDashboardScreen()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-blue-500">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xs font-bold text-gray-400 uppercase">Класс выбран</h2>
+                        <h1 class="text-base font-extrabold text-gray-800" id="selected-class-header">Раздел: 5 класс</h1>
+                    </div>
+                </div>
+
+                <!-- Time limit selector and Topics list -->
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <!-- Inline Time Limit Selector -->
+                    <div class="bg-white px-5 py-3 border-b border-gray-150 flex justify-between items-center shadow-sm">
+                        <label class="text-[11px] font-bold text-gray-500 uppercase flex items-center"><i class="fa-solid fa-clock text-blue-500 mr-1">5</i> Время Спринта:</label>
+                        <select id="select-sprint-time" class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1.5 text-xs font-bold focus:outline-none focus:border-blue-500 text-gray-700">
+                            <option value="60" selected>60 сек (1 мин)</option>
+                            <option value="180">180 сек (3 мин)</option>
+                            <option value="300">300 сек (5 мин)</option>
+                            <option value="600">600 сек (10 мин)</option>
+                            <option value="900">900 сек (15 мин)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3 custom-scroll">
+                        <div id="topics-list-container" class="space-y-2.5">
+                            <!-- Dynamic Topics go here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCREEN 4: SPRINT GAMEPLAY (STABLE NON-SHIFTING KEYBOARD VIEWPORT) -->
+            <div id="screen-sprint" class="flex-1 relative bg-[#F0F2F5] hidden">
+                <!-- Fixed Top Header (Progress Bar & Timer) -->
+                <div class="absolute top-0 left-0 right-0 h-14 bg-[#F0F2F5] flex justify-between items-center px-5 z-20 border-b border-gray-200/50">
+                    <div class="flex-1 mr-4 bg-gray-200 h-2 rounded-full overflow-hidden">
+                        <div id="sprint-progress" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div id="sprint-timer-label" class="bg-orange-50 text-orange-700 border border-orange-200 font-bold text-[11px] px-3 py-1 rounded-xl flex items-center space-x-1">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>60с</span>
+                    </div>
+                </div>
+
+                <!-- Stable Content container (Drives no layout shifts on keyboard popups!) -->
+                <div class="absolute top-14 bottom-24 left-0 right-0 p-5 flex flex-col justify-start space-y-4">
+                    <!-- Task Card Frame (Locked dimensions) -->
+                    <div class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex flex-col justify-center items-center min-h-[280px] max-h-[300px] space-y-3 relative overflow-hidden">
+                        <span id="sprint-question-index" class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Задание №1</span>
+
+                        <div id="sprint-content-text" class="text-xl font-extrabold text-center text-gray-800 tracking-tight leading-normal px-1">2 * 2 = ?</div>
+                        <div id="sprint-content-latex" class="flex items-center justify-center min-h-[80px] w-full hidden"></div>
+                        
+                        <div id="sprint-content-image-wrapper" class="w-full border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-center min-h-[150px] max-h-[160px] p-2 hidden">
+                            <img id="sprint-content-image" src="" class="max-h-[140px] object-contain rounded-lg">
+                        </div>
+                    </div>
+
+                    <!-- Input area (Placed exactly below card, static and stable!) -->
+                    <div class="relative">
+                        <input type="text" id="sprint-answer-input" placeholder="Введите ответ..." class="w-full bg-white border-2 border-gray-200 focus:border-blue-500 rounded-2xl px-4 py-3.5 text-center text-lg font-bold focus:outline-none shadow-sm">
+                        <!-- Dual touchstart and click bindings to prevent keyboard event swallowing on mobile! -->
+                        <button onclick="submitSprintAnswer()" ontouchstart="handleTouchSubmit(event)" class="absolute right-2.5 top-2 w-11 h-11 bg-blue-500 hover:bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-100">
+                            <i class="fa-solid fa-chevron-right text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fixed Bottom Panel (Cancel / Quit button) - Covered by Keyboard without shifting content! -->
+                <div class="absolute bottom-4 left-0 right-0 h-16 flex justify-center items-center z-10">
+                    <button onclick="quitSprint()" class="text-xs text-rose-500 font-bold hover:text-rose-600 transition flex items-center space-x-1 px-4 py-2 bg-rose-50 rounded-xl border border-rose-100">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Прервать спринт</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCREEN 5: SPRINT RESULTS & SYNC -->
+            <div id="screen-results" class="flex-1 flex flex-col bg-white p-6 justify-between hidden">
+                <div class="space-y-6 flex-1 flex flex-col justify-center items-center">
+                    <!-- Trophy Icon -->
+                    <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500 text-4xl shadow-md">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+
+                    <div class="text-center space-y-1">
+                        <h1 class="text-2xl font-extrabold text-gray-800">Спринт Завершен!</h1>
+                        <p class="text-sm text-gray-500" id="results-topic-title">Тема: Таблица умножения</p>
+                    </div>
+
+                    <!-- Score card -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 w-full flex justify-around items-center divide-x divide-gray-200">
+                        <div class="text-center flex-1">
+                            <span class="text-2xl font-extrabold text-blue-500" id="results-score-count">15</span>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold mt-0.5">Ответов</p>
+                        </div>
+                        <div class="text-center flex-1">
+                            <span class="text-2xl font-extrabold text-orange-500" id="results-time-spent">45</span>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold mt-0.5">Время (сек)</p>
+                        </div>
+                    </div>
+
+                    <!-- Sync status label -->
+                    <div id="results-sync-status" class="text-xs text-gray-500 text-center font-semibold flex items-center space-x-1 bg-gray-100 px-4 py-2 rounded-full border border-gray-200">
+                        <span class="w-2 h-2 rounded-full bg-orange-400 inline-block mr-1"></span>
+                        <span>Готов к слиянию результатов...</span>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="space-y-2.5">
+                    <button id="btn-results-sync" onclick="syncResultsToCloud()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-100 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Отправить результаты учителю</span>
+                    </button>
+                    <button onclick="showDashboardScreen()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition text-xs">
+                        Вернуться в Лобби
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCREEN 6: TEACHER CONTROL PANEL (ADMIN BOARD) -->
+            <div id="screen-teacher" class="flex-1 flex flex-col bg-gray-50 hidden">
+                <!-- Header -->
+                <div class="bg-white px-5 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold text-lg"><i class="fa-solid fa-chalkboard-user"></i></div>
+                        <div>
+                            <h2 class="text-sm font-bold text-gray-800">Кабинет Учителя</h2>
+                            <span class="text-[10px] text-indigo-500 font-bold flex items-center">Активное хранилище Yandex</span>
+                        </div>
+                    </div>
+                    <button onclick="switchToLoginScreen()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-rose-500 transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4 custom-scroll">
+                    
+                    <!-- STATS / SPACE -->
+                    <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm flex justify-between items-center">
+                        <div>
+                            <span class="text-[10px] text-gray-400 uppercase font-bold">Подключено учеников</span>
+                            <h4 class="text-2xl font-extrabold text-gray-800" id="teacher-students-count">0</h4>
+                        </div>
+                        <button onclick="refreshTeacherData()" class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 hover:text-blue-500 transition shadow-inner">
+                            <i class="fa-solid fa-arrows-rotate text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- ACTIVE ASSIGNMENT STATUS -->
+                    <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-2">
+                        <span class="text-[10px] text-gray-400 uppercase font-bold block">Опубликованное задание:</span>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800" id="teacher-active-assignment-title">Нет активных заданий</h4>
+                                <span class="text-[11px] text-gray-500 block" id="teacher-active-assignment-date">-</span>
+                            </div>
+                            <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded">Активно</span>
+                        </div>
+                    </div>
+
+                    <!-- STUDENTS LIST -->
+                    <div class="space-y-2">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Результаты ваших учеников:</h3>
+                        <div id="teacher-students-results-list" class="space-y-2">
+                            <!-- Dynamic student results cards -->
+                            <div class="text-center py-8 text-gray-400 text-xs">Нет данных. Нажмите кнопку обновить выше.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Live JS logic containing SQLite WASM, Yandex Disk REST API, and Quiz Loop -->
+    <script>
+        // --- NATIVE BRIDGE CALLBACK ---
+        window.loadDatabaseFromBase64 = async (base64Str) => {
+            try {
+                showLoadingOverlay("Инициализация базы вопросов...");
+                
+                // Decode base64 to Uint8Array
+                const binaryString = window.atob(base64Str);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                
+                // Load SQLite Database
+                const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
+                dbInstance = new SQL.Database(bytes);
+                
+                // Fetch classes
+                classesList = [];
+                let q_classes;
+                try {
+                    q_classes = dbInstance.exec("SELECT id, name FROM classes ORDER BY sort_order ASC, id ASC");
+                } catch(e) {
+                    q_classes = dbInstance.exec("SELECT id, name FROM classes ORDER BY id ASC");
+                }
+                
+                if (q_classes.length > 0) {
+                    q_classes[0].values.forEach(row => {
+                        classesList.push({ id: row[0], name: row[1] });
+                    });
+                }
+
+                // Check active assignment
+                showLoadingOverlay("Проверка домашних заданий...");
+                await checkActiveAssignment();
+
+                // Transition to Dashboard
+                document.getElementById("student-avatar-letter").innerText = studentName.charAt(0).toUpperCase();
+                document.getElementById("student-welcome-name").innerText = `Привет, ${studentName}! (${studentClass})`;
+                
+                populateDashboardClasses();
+                hideLoadingOverlay();
+                showDashboardScreen();
+                
+            } catch (err) {
+                console.error(err);
+                hideLoadingOverlay();
+                alert(`Ошибка импорта базы данных: ${err.message}`);
+            }
+        };
+        let yandexToken = "";
+        let studentName = "";
+        let studentGender = "boys";
+        let studentClass = "5 класс";
+        let studentClassesList = ["5 класс"];
+        
+        let dbInstance = null;
+        let classesList = [];
+        let topicsList = [];
+        let activeAssignment = null;
+        
+        // Active Sprint State
+        let sprintQuestions = [];
+        let currentQuestionIndex = 0;
+        let correctAnswersCount = 0;
+        let timeRemaining = 60;
+        let timerInterval = null;
+        let answersLog = [];
+        let activeTopicName = "";
+
+        // Load token and multiple classes from localStorage and trigger Auto-Login if exists!
+        window.onload = () => {
+            const cachedToken = localStorage.getItem("sprint_teacher_token");
+            const cachedName = localStorage.getItem("sprint_student_name");
+            const cachedClassesStr = localStorage.getItem("sprint_student_classes");
+            
+            document.getElementById("input-teacher-key").value = cachedToken || "";
+            document.getElementById("input-student-name").value = cachedName || "";
+            
+            let cachedClasses = ["5 класс"];
+            if (cachedClassesStr) {
+                try {
+                    cachedClasses = JSON.parse(cachedClassesStr);
+                } catch(e) {}
+            }
+            
+            // Check correspond checkboxes
+            document.querySelectorAll('.class-checkbox').forEach(cb => {
+                cb.checked = cachedClasses.includes(cb.value);
+            });
+            
+            if (cachedToken && cachedName && cachedClasses.length > 0) {
+                attemptConnection();
+            }
+            
+            // Bind keyboard Enter / Return key for instant submissions!
+            document.addEventListener("keypress", (event) => {
+                if (event.target && event.target.id === "sprint-answer-input") {
+                    if (event.key === "Enter" || event.keyCode === 13) {
+                        event.preventDefault();
+                        submitSprintAnswer();
+                    }
+                }
+            });
+        };
+
+        // Touchsubmit helper to prevent double trigger and bypass focus blur blocks
+        function handleTouchSubmit(event) {
+            event.preventDefault();
+            submitSprintAnswer();
+        }
+
+        function showScreen(screenId) {
+            const screens = ["screen-login", "screen-dashboard", "screen-topics", "screen-sprint", "screen-results", "screen-teacher"];
+            screens.forEach(s => {
+                document.getElementById(s).classList.add("hidden");
+            });
+            document.getElementById(screenId).classList.remove("hidden");
+        }
+
+        function showLoadingOverlay(text) {
+            document.getElementById("loading-status-text").innerText = text;
+            document.getElementById("loading-overlay").classList.remove("hidden");
+        }
+
+        function hideLoadingOverlay() {
+            document.getElementById("loading-overlay").classList.add("hidden");
+        }
+
+        function switchToTeacherMode() {
+            yandexToken = document.getElementById("input-teacher-key").value.trim();
+            if (!yandexToken) {
+                showLoginError("Пожалуйста, сначала введите токен Яндекс.Диска!");
+                return;
+            }
+            
+            // Protect Teacher Cabinet with Pincode 0000 on mobile!
+            const pin = prompt("Введите код доступа администратора (попробуйте 0000):");
+            if (pin !== "0000") {
+                alert("❌ Неверный код доступа!");
+                return;
+            }
+            
+            localStorage.setItem("sprint_teacher_token", yandexToken);
+            showScreen("screen-teacher");
+            refreshTeacherData();
+        }
+
+        function switchToLoginScreen() {
+            showScreen("screen-login");
+        }
+
+        function showLoginError(msg) {
+            const err = document.getElementById("login-error");
+            err.innerText = msg;
+            err.classList.remove("hidden");
+        }
+
+        // ==========================================
+        // YANDEX DISK REST API CLIENT ACTIONS
+        // ==========================================
+        async function attemptConnection() {
+            yandexToken = document.getElementById("input-teacher-key").value.trim();
+            studentName = document.getElementById("input-student-name").value.trim();
+            studentGender = document.getElementById("select-student-gender").value;
+            
+            const checkedBoxes = Array.from(document.querySelectorAll('.class-checkbox:checked')).map(cb => cb.value);
+
+            if (!studentName || studentName.length < 2) {
+                showLoginError("Пожалуйста, введите корректный псевдоним (минимум 2 буквы)");
+                return;
+            }
+            if (checkedBoxes.length === 0) {
+                showLoginError("Пожалуйста, выберите хотя бы один класс для обучения!");
+                return;
+            }
+            if (!yandexToken) {
+                showLoginError("Пожалуйста, укажите Ключ Преподавателя (Yandex Token)");
+                return;
+            }
+
+            studentClass = checkedBoxes.join(", "); // Fallback string for display
+            studentClassesList = checkedBoxes; // Global array for filtering!
+
+            // Save settings locally
+            localStorage.setItem("sprint_teacher_token", yandexToken);
+            localStorage.setItem("sprint_student_name", studentName);
+            localStorage.setItem("sprint_student_classes", JSON.stringify(checkedBoxes));
+
+            showLoginError("");
+            showLoadingOverlay("Подключение к облаку Яндекс...");
+
+            try {
+                // 1. Verify token
+                const headers = { 'Authorization': `OAuth ${yandexToken}`, 'Accept': 'application/json' };
+                const checkRes = await fetch("https://cloud-api.yandex.net/v1/disk", { headers });
+                if (checkRes.status != 200) {
+                    hideLoadingOverlay();
+                    showLoginError("Недействительный Ключ Преподавателя. Проверьте правильность токена.");
+                    return;
+                }
+
+                // 2. Download Database
+                showLoadingOverlay("Скачивание учебных спринт-тестов...");
+                const dbPath = "/Sprint Backup/sprint_backup_active.db";
+                const downRes = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(dbPath)}`, { headers });
+                
+                if (downRes.status != 200) {
+                    hideLoadingOverlay();
+                    showLoginError("База данных преподавателя не найдена на Яндекс.Диске! Пожалуйста, сначала сделайте бэкап в десктопной программе.");
+                    return;
+                }
+
+                const downData = await downRes.json();
+                
+                // CHECK NATIVE BRIDGE FIRST! (Completely bypasses CORS)
+                if (window.ReactNativeWebView) {
+                    showLoadingOverlay("Нативное скачивание базы в обход CORS...");
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'download_db',
+                        href: downData.href
+                    }));
+                    return; // Wait for loadDatabaseFromBase64 callback!
+                }
+                
+                // Fallback for Web PWA simulator/browser using CORS proxy!
+                const fileRes = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(downData.href));
+                const arrayBuffer = await fileRes.arrayBuffer();
+
+                // 3. Initialize SQLite
+                showLoadingOverlay("Загрузка и парсинг базы вопросов...");
+                const SQL = await initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` });
+                dbInstance = new SQL.Database(new Uint8Array(arrayBuffer));
+
+                // 4. Fetch classes
+                classesList = [];
+                let q_classes;
+                try {
+                    // Query classes with sort_order
+                    q_classes = dbInstance.exec("SELECT id, name FROM classes ORDER BY sort_order ASC, id ASC");
+                } catch(e) {
+                    // Fallback to alphabetical sorting if sort_order column is missing in old databases!
+                    q_classes = dbInstance.exec("SELECT id, name FROM classes ORDER BY id ASC");
+                }
+                
+                if (q_classes.length > 0) {
+                    q_classes[0].values.forEach(row => {
+                        classesList.push({ id: row[0], name: row[1] });
+                    });
+                }
+
+                // 5. Fetch active assignment
+                showLoadingOverlay("Проверка домашних заданий...");
+                await checkActiveAssignment();
+
+                // 6. Transition to Dashboard
+                document.getElementById("student-avatar-letter").innerText = studentName.charAt(0).toUpperCase();
+                document.getElementById("student-welcome-name").innerText = `Привет, ${studentName}! (${studentClass})`;
+                
+                populateDashboardClasses();
+                hideLoadingOverlay();
+                showDashboardScreen();
+
+            } catch (err) {
+                console.error(err);
+                hideLoadingOverlay();
+                showLoginError(`Ошибка сети: ${err.message}`);
+            }
+        }
+
+        async function checkActiveAssignment() {
+            const headers = { 'Authorization': `OAuth ${yandexToken}` };
+            try {
+                const path = "/Sprint Backup/assignments/active_assignment.json";
+                const r = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(path)}`, { headers });
+                if (r.status == 200) {
+                    const d = await r.json();
+                    const c_res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(d.href));
+                    const assign = await c_res.json();
+                    
+                    // Show ONLY if targeted specifically to this student's class and student name!
+                    const targetStudent = assign.target_student || "Все";
+                    const isTargetClass = studentClassesList.includes(assign.target_class);
+                    const isTargetStudent = (targetStudent === "Все" || targetStudent.toLowerCase().trim() === studentName.toLowerCase().trim());
+                    
+                    if (isTargetClass && isTargetStudent) {
+                        activeAssignment = assign;
+                        document.getElementById("assignment-topic-title").innerText = assign.topic_name;
+                        document.getElementById("assignment-class-title").innerText = `Назначено для: ${assign.target_class}` + (targetStudent !== "Все" ? ` (Персонально)` : "");
+                        document.getElementById("active-assignment-banner").classList.remove("hidden");
+                    } else {
+                        document.getElementById("active-assignment-banner").classList.add("hidden");
+                    }
+                } else {
+                    document.getElementById("active-assignment-banner").classList.add("hidden");
+                }
+            } catch (e) {
+                document.getElementById("active-assignment-banner").classList.add("hidden");
+            }
+        }
+
+        function populateDashboardClasses() {
+            const grid = document.getElementById("classes-list-grid");
+            grid.innerHTML = "";
+            
+            // Filter list of classes fetched from SQLite by what the student checked!
+            const activeClasses = classesList.filter(cl => studentClassesList.includes(cl.name));
+            const classesToRender = activeClasses.length > 0 ? activeClasses : classesList;
+            
+            classesToRender.forEach(cl => {
+                // Icon matching
+                let iconClass = "fa-book";
+                if (cl.name.includes("10-11")) iconClass = "fa-graduation-cap";
+                else if (cl.name.includes("9")) iconClass = "fa-ruler";
+                else if (cl.name.includes("8")) iconClass = "fa-calculator";
+                else if (cl.name.includes("7")) iconClass = "fa-calculator";
+                else if (cl.name.includes("6")) iconClass = "fa-chart-pie";
+                else if (cl.name.includes("5")) iconClass = "fa-abacus";
+                
+                const btn = document.createElement("button");
+                btn.className = "bg-white border border-gray-200 rounded-2xl p-4 text-left flex flex-col justify-between h-28 hover:border-blue-500 transition shadow-sm";
+                btn.onclick = () => selectClass(cl.id, cl.name);
+                btn.innerHTML = `
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 text-sm">
+                        <i class="fa-solid ${iconClass}"></i>
+                    </div>
+                    <span class="text-xs font-bold text-gray-800 leading-tight block mt-2">${cl.name}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function showDashboardScreen() {
+            showScreen("screen-dashboard");
+            checkActiveAssignment();
+        }
+
+        function selectClass(classId, className) {
+            showLoadingOverlay("Загрузка списка тем...");
+            
+            document.getElementById("selected-class-header").innerText = `Раздел: ${className}`;
+            
+            const container = document.getElementById("topics-list-container");
+            container.innerHTML = "";
+
+            // Inject cumulative test first
+            const testBtn = document.createElement("button");
+            testBtn.className = "w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold text-sm p-4 rounded-2xl text-left shadow-sm flex justify-between items-center";
+            testBtn.onclick = () => startSprint(`🏆 Итоговый тест за ${className}`, classId, true);
+            testBtn.innerHTML = `
+                <div>
+                    <span class="block text-[10px] text-amber-100 uppercase tracking-wider">Кумулятивный тест</span>
+                    <span>🏆 Итоговый тест за ${className}</span>
+                </div>
+                <i class="fa-solid fa-circle-play text-lg"></i>
+            `;
+            container.appendChild(testBtn);
+
+            // Fetch actual topics belonging to this class with safe fallback
+            const topics = [];
+            let stmt;
+            try {
+                stmt = dbInstance.prepare("SELECT id, name FROM topics WHERE class_id = ? ORDER BY sort_order ASC, id ASC");
+            } catch(e) {
+                // Fallback for older databases without sort_order column
+                stmt = dbInstance.prepare("SELECT id, name FROM topics WHERE class_id = ? ORDER BY id ASC");
+            }
+            
+            stmt.bind([classId]);
+            while (stmt.step()) {
+                const row = stmt.getAsObject();
+                topics.push({ id: row.id, name: row.name });
+            }
+            stmt.free();
+
+            topics.forEach(t => {
+                const btn = document.createElement("button");
+                btn.className = "w-full bg-white border border-gray-200 rounded-2xl p-4 text-left hover:border-blue-500 transition shadow-sm flex justify-between items-center";
+                btn.onclick = () => startSprint(t.name, t.id, false);
+                btn.innerHTML = `
+                    <span class="font-bold text-gray-800 text-sm text-left leading-normal">${t.name}</span>
+                    <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                `;
+                container.appendChild(btn);
+            });
+
+            hideLoadingOverlay();
+            showScreen("screen-topics");
+        }
+
+        function startAssignedSprint() {
+            if (activeAssignment) {
+                const cl = classesList.find(c => c.name == activeAssignment.class_name);
+                if (cl) {
+                    if (activeAssignment.topic_name.startsWith("🏆")) {
+                        startSprint(activeAssignment.topic_name, cl.id, true);
+                    } else {
+                        const stmt = dbInstance.prepare("SELECT id FROM topics WHERE name = ? AND class_id = ?");
+                        stmt.bind([activeAssignment.topic_name, cl.id]);
+                        if (stmt.step()) {
+                            const topic_id = stmt.getAsObject().id;
+                            stmt.free();
+                            startSprint(activeAssignment.topic_name, topic_id, false);
+                        } else {
+                            stmt.free();
+                            startSprint(`🏆 Итоговый тест за ${cl.name}`, cl.id, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // SPRINT GAMEPLAY ENGINE
+        // ==========================================
+        async function startSprint(topicName, targetId, isCumulative) {
+            activeTopicName = topicName;
+            sprintQuestions = [];
+            
+            showLoadingOverlay("Подготовка вопросов теста...");
+            
+            if (isCumulative) {
+                const stmt = dbInstance.prepare(`
+                    SELECT q.id, q.question_text, q.correct_answer, q.question_type, q.image_path 
+                    FROM questions q
+                    INNER JOIN topics t ON q.topic_id = t.id
+                    WHERE t.class_id = ?
+                `);
+                stmt.bind([targetId]);
+                while (stmt.step()) {
+                    sprintQuestions.push(stmt.getAsObject());
+                }
+                stmt.free();
+            } else {
+                const stmt = dbInstance.prepare("SELECT id, question_text, correct_answer, question_type, image_path FROM questions WHERE topic_id = ?");
+                stmt.bind([targetId]);
+                while (stmt.step()) {
+                    sprintQuestions.push(stmt.getAsObject());
+                }
+                stmt.free();
+            }
+
+            if (sprintQuestions.length == 0) {
+                hideLoadingOverlay();
+                alert("В выбранном тесте пока нет вопросов!");
+                return;
+            }
+
+            sprintQuestions.sort(() => Math.random() - 0.5);
+
+            // Read the strictly selected time limit directly from the mobile UI!
+            let limitSec = 60;
+            const timeSelect = document.getElementById("select-sprint-time");
+            if (timeSelect) {
+                limitSec = parseInt(timeSelect.value) || 60;
+            }
+
+            currentQuestionIndex = 0;
+            correctAnswersCount = 0;
+            timeRemaining = limitSec;
+            answersLog = [];
+
+            document.getElementById("sprint-answer-input").value = "";
+
+            hideLoadingOverlay();
+            showScreen("screen-sprint");
+            showQuestion();
+
+            const initMins = Math.floor(timeRemaining / 60);
+            const initSecs = timeRemaining % 60;
+            document.getElementById("sprint-timer-label").innerText = `Осталось: ${initMins}:${initSecs < 10 ? "0" + initSecs : initSecs}`;
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                if (timeRemaining <= 0) {
+                    endSprint();
+                } else {
+                    document.getElementById("sprint-timer-label").innerText = `Осталось: ${timeRemaining} сек`;
+                }
+            }, 1000);
+        }
+
+        async function showQuestion() {
+            const q = sprintQuestions[currentQuestionIndex];
+            
+            document.getElementById("sprint-question-index").innerText = `Задание №${currentQuestionIndex + 1}`;
+
+            document.getElementById("sprint-content-text").classList.add("hidden");
+            document.getElementById("sprint-content-latex").classList.add("hidden");
+            document.getElementById("sprint-content-image-wrapper").classList.add("hidden");
+
+            if (q.question_type == 'text') {
+                const textLbl = document.getElementById("sprint-content-text");
+                textLbl.innerText = q.question_text;
+                textLbl.classList.remove("hidden");
+            } 
+            else if (q.question_type == 'latex') {
+                const latexLbl = document.getElementById("sprint-content-latex");
+                latexLbl.innerHTML = "";
+                latexLbl.classList.remove("hidden");
+                try {
+                    katex.render(q.question_text, latexLbl, { throwOnError: false, fontSize: "1.4em" });
+                } catch(e) {
+                    latexLbl.innerText = q.question_text;
+                }
+            } 
+            else if (q.question_type == 'image') {
+                const imgWrapper = document.getElementById("sprint-content-image-wrapper");
+                const imgEl = document.getElementById("sprint-content-image");
+                imgEl.src = "";
+                imgWrapper.classList.remove("hidden");
+                
+                imgEl.alt = "Загрузка изображения из облака...";
+                
+                try {
+                    const img_path = q.image_path;
+                    const headers = { 'Authorization': `OAuth ${yandexToken}` };
+                    const remote_img_path = `/Sprint Backup/${img_path}`;
+                    
+                    const r_url = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(remote_img_path)}`, { headers });
+                    if (r_url.status == 200) {
+                        const d = await r_url.json();
+                        imgEl.src = d.href;
+                        imgEl.alt = "Изображение задания";
+                    } else {
+                        imgEl.alt = "Изображение не найдено в облаке.";
+                    }
+                } catch (e) {
+                    imgEl.alt = "Ошибка загрузки фото.";
+                }
+            }
+
+            const prog = ((currentQuestionIndex) / sprintQuestions.length) * 100;
+            document.getElementById("sprint-progress").style.width = `${prog}%`;
+
+            document.getElementById("sprint-answer-input").value = "";
+            document.getElementById("sprint-answer-input").focus();
+        }
+
+        async function submitSprintAnswer() {
+            const user_ans = document.getElementById("sprint-answer-input").value.trim();
+            if (!user_ans) return;
+
+            const q = sprintQuestions[currentQuestionIndex];
+            const is_correct = (user_ans == q.correct_answer);
+
+            if (is_correct) {
+                correctAnswersCount++;
+            }
+
+            answersLog.push({ question: q.question_text, your: user_ans, correct: q.correct_answer, is_correct });
+            advanceQuestion();
+        }
+
+        function advanceQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= sprintQuestions.length) {
+                sprintQuestions.sort(() => Math.random() - 0.5);
+                currentQuestionIndex = 0;
+            }
+            showQuestion();
+        }
+
+        function quitSprint() {
+            const confirm = window.confirm("Вы действительно хотите прервать тест?");
+            if (confirm) {
+                if (timerInterval) clearInterval(timerInterval);
+                showDashboardScreen();
+            }
+        }
+
+        function endSprint() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            document.getElementById("results-topic-title").innerText = `Тема: ${activeTopicName}`;
+            document.getElementById("results-score-count").innerText = `${correctAnswersCount}/${answersLog.length}`;
+            
+            let limitSec = 60;
+            try {
+                const settingsQuery = dbInstance.exec("SELECT time_limit_sec FROM settings LIMIT 1");
+                if (settingsQuery.length > 0) limitSec = settingsQuery[0].values[0][0];
+            } catch(e) {}
+            
+            const spent = limitSec - timeRemaining;
+            document.getElementById("results-time-spent").innerText = spent;
+
+            document.getElementById("results-sync-status").innerHTML = `<span class="w-2 h-2 rounded-full bg-orange-400 inline-block mr-1"></span><span>Готов к слиянию результатов...</span>`;
+            document.getElementById("btn-results-sync").disabled = false;
+
+            showScreen("screen-results");
+        }
+
+        // ==========================================
+        // SYNC RESULTS TO TEACHER CLOUD STORAGE
+        // ==========================================
+        async function syncResultsToCloud() {
+            document.getElementById("btn-results-sync").disabled = true;
+            const status = document.getElementById("results-sync-status");
+            status.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-400 inline-block mr-1 animate-ping"></span><span>Синхронизация с облаком...</span>`;
+
+            try {
+                let limitSec = 60;
+                try {
+                    const settingsQuery = dbInstance.exec("SELECT time_limit_sec FROM settings LIMIT 1");
+                    if (settingsQuery.length > 0) limitSec = settingsQuery[0].values[0][0];
+                } catch(e) {}
+                const spent = limitSec - timeRemaining;
+
+                const result_log = {
+                    "student_name": studentName,
+                    "student_class": studentClassesList.join(", "),
+                    "topic_name": activeTopicName,
+                    "score": `${correctAnswersCount}/${answersLog.length}`,
+                    "time_spent": spent,
+                    "time_limit": limitSec,
+                    "date_time": new Date().toLocaleString("ru-RU", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                };
+
+                const filename = `student_result_${studentName.replace(/\s+/g, '_')}_${Date.now()}.json`;
+                const headers = { 'Authorization': `OAuth ${yandexToken}`, 'Content-Type': 'application/json' };
+                const remote_path = `/Sprint Backup/results/${filename}`;
+
+                const r_endpoint = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/upload?path=${encodeURIComponent(remote_path)}&overwrite=true`, { headers: { 'Authorization': `OAuth ${yandexToken}` } });
+                if (r_endpoint.status == 200) {
+                    const d = await r_endpoint.json();
+                    const r_put = await fetch(d.href, {
+                        method: 'PUT',
+                        body: JSON.stringify(result_log)
+                    });
+
+                    if (r_put.status == 200 || r_put.status == 201) {
+                        status.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span><span class="text-emerald-500 font-bold">Оценки переданы!</span>`;
+                        alert("Оценки успешно отправлены преподавателю!");
+                        return;
+                    }
+                }
+                throw new Error("Не удалось загрузить лог в облако.");
+            } catch (err) {
+                console.error(err);
+                status.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500 inline-block mr-1"></span><span class="text-rose-500">Сбой: ${err.message}</span>`;
+                document.getElementById("btn-results-sync").disabled = false;
+            }
+        }
+
+        // ==========================================
+        // TEACHER DASHBOARD IMPLEMENTATION
+        // ==========================================
+        async function refreshTeacherData() {
+            const listContainer = document.getElementById("teacher-students-results-list");
+            listContainer.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs flex items-center justify-center"><i class="fa-solid fa-spinner animate-spin mr-2"></i> Чтение данных с Яндекс.Диска...</div>`;
+
+            const headers = { 'Authorization': `OAuth ${yandexToken}`, 'Accept': 'application/json' };
+            try {
+                // Check active assignment
+                const pathAssign = "/Sprint Backup/assignments/active_assignment.json";
+                const rAssign = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(pathAssign)}`, { headers });
+                if (rAssign.status == 200) {
+                    const d = await rAssign.json();
+                    const c_res = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(d.href));
+                    const assign = await c_res.json();
+                    document.getElementById("teacher-active-assignment-title").innerText = assign.topic_name;
+                    document.getElementById("teacher-active-assignment-date").innerText = `Назначено для: ${assign.target_class} (${assign.assigned_at})`;
+                } else {
+                    document.getElementById("teacher-active-assignment-title").innerText = "Нет активных заданий";
+                    document.getElementById("teacher-active-assignment-date").innerText = "-";
+                }
+
+                // Fetch results folder items
+                const results_path = "/Sprint Backup/results";
+                const r_res = await fetch(`https://cloud-api.yandex.net/v1/disk/resources?path=${encodeURIComponent(results_path)}&limit=1000`, { headers });
+                
+                if (r_res.status != 200) {
+                    listContainer.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">Папка результатов пуста. Ожидание тестов...</div>`;
+                    document.getElementById("teacher-students-count").innerText = "0";
+                    return;
+                }
+
+                const items = (await r_res.json())._embedded.items;
+                const studentsUnique = new Set();
+                listContainer.innerHTML = "";
+
+                let hasResults = false;
+                for (const item of items) {
+                    if (item.type == 'file' && item.name.endsWith('.json')) {
+                        hasResults = true;
+                        const file_path = `/Sprint Backup/results/${item.name}`;
+                        const r_down = await fetch(`https://cloud-api.yandex.net/v1/disk/resources/download?path=${encodeURIComponent(file_path)}`, { headers });
+                        if (r_down.status == 200) {
+                            const d_url = await r_down.json();
+                            const r_content = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(d_url.href));
+                            const res_data = await r_content.json();
+                            
+                            studentsUnique.add(res_data.student_name);
+
+                            const card = document.createElement("div");
+                            card.className = "bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-2.5";
+                            card.innerHTML = `
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center space-x-2.5">
+                                        <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 font-bold text-xs">
+                                            ${res_data.student_name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-extrabold text-gray-800">${res_data.student_name}</h4>
+                                            <span class="text-[10px] text-gray-400 font-bold">${res_data.student_class || "Класс не указан"}</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] text-gray-400 font-semibold">${res_data.date_time}</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-gray-50 border border-gray-150 p-2.5 rounded-xl">
+                                    <div>
+                                        <span class="text-[9px] text-gray-400 uppercase font-bold block">Спринт-тест:</span>
+                                        <span class="text-xs font-bold text-gray-700 leading-normal block max-w-[200px] truncate">${res_data.topic_name}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-[9px] text-gray-400 uppercase font-bold block">Лимит / Результат:</span>
+                                        <span class="text-xs font-black text-indigo-600">${res_data.score} (${res_data.time_limit || 60}с)</span>
+                                    </div>
+                                </div>
+                            `;
+                            listContainer.appendChild(card);
+                        }
+                    }
+                }
+
+                if (!hasResults) {
+                    listContainer.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">Все результаты объединены в мастер-БД учителя на ПК! Ожидание сдачи новых тестов...</div>`;
+                }
+
+                document.getElementById("teacher-students-count").innerText = studentsUnique.size;
+
+            } catch (err) {
+                console.error(err);
+                listContainer.innerHTML = `<div class="text-center py-8 text-rose-500 text-xs">Ошибка: ${err.message}</div>`;
+            }
+        }
+
+        function logout() {
+            const confirm = window.confirm("Вы уверены, что хотите отключиться от хранилища? Все локальные куки и кэш будут очищены.");
+            if (confirm) {
+                localStorage.removeItem("sprint_teacher_token");
+                localStorage.removeItem("sprint_student_name");
+                localStorage.removeItem("sprint_student_classes");
+                dbInstance = null;
+                showScreen("screen-login");
+            }
+        }
+    </script>
+</body>
+</html>

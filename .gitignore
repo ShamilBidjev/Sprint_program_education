@@ -1,0 +1,13 @@
+.cache/
+__pycache__/
+*.db
+build/
+dist/
+*.spec
+.gitconfig
+.sudo_as_admin_successful
+temp_latex_quiz.png
+temp_latex_preview.png
+test_latex*.png
+sprint_images/
+
